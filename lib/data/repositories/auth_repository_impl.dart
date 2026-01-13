@@ -34,10 +34,4 @@ class AuthRepositoryImpl implements AuthRepository {
   Stream<UserEntity?> watchUser() {
     return remote.watchUser().map((model) => model?.toEntity());
   }
-
-  Future<void> resetPassword(String email) {
-    throw UnimplementedError();
-  }
-
-  Stream<String?> get userIdStream => throw UnimplementedError();
 }

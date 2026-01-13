@@ -2,8 +2,11 @@
 cmake_minimum_required(VERSION 3.14)
 project(task_managerment LANGUAGES CXX)
 
-# The name of the executable created for the application. Change this to change
-# the on-disk name of your application.
+# Tắt các deprecation warnings
+set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
+set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON CACHE BOOL "" FORCE)
+
+project(task_managerment LANGUAGES CXX)
 set(BINARY_NAME "task_managerment")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent

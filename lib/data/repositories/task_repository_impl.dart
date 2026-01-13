@@ -1,4 +1,3 @@
-// lib/data/repositories/task_repository_impl.dart
 import 'package:task_manager/domain/entity/task_entity.dart';
 import 'package:task_manager/domain/repositories/task_repository.dart';
 import '../datasources/task_remote_data_source.dart';
@@ -18,10 +17,14 @@ class TaskRepositoryImpl implements TaskRepository {
 
   @override
   Stream<List<TaskEntity>> getTasksByCategory(
-      String userId, String categoryId) {
+      String userId,
+      String categoryId,
+      ) {
     return remoteDataSource
         .getTasksByCategory(userId, categoryId)
-        .map((models) => models.map((m) => m.toEntity()).toList());
+        .map(
+          (models) => models.map((m) => m.toEntity()).toList(),
+    );
   }
 
   @override
@@ -42,14 +45,18 @@ class TaskRepositoryImpl implements TaskRepository {
   }
 
   @override
-  Future<void> deleteTasksByCategory(String categoryId) {
-    // TODO: implement deleteTasksByCategory
-    throw UnimplementedError();
+  Future<void> deleteTasksByCategory(String categoryId) async {
+    await remoteDataSource.deleteTasksByCategory(categoryId);
   }
 
   @override
-  Future<void> reassignTasksToAnotherCategory({required String oldCategoryId, required String newCategoryId}) {
-    // TODO: implement reassignTasksToAnotherCategory
-    throw UnimplementedError();
+  Future<void> reassignTasksToAnotherCategory({
+    required String oldCategoryId,
+    required String newCategoryId,
+  }) async {
+    await remoteDataSource.reassignTasksToAnotherCategory(
+      oldCategoryId,
+      newCategoryId,
+    );
   }
 }

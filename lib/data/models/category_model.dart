@@ -37,19 +37,20 @@ class CategoryModel {
 
   // Firestore → Model
   factory CategoryModel.fromDoc(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>?;
 
     return CategoryModel(
       id: doc.id,
-      name: data['name'],
-      colorHex: data['colorHex'],
-      userId: data['userId'],
+      name: data?['name'] ?? '',
+      colorHex: data?['colorHex'] ?? 0xFF2196F3,
+      userId: data?['userId'] ?? '',
     );
   }
 
   // Model → Firestore Map
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'name': name,
       'colorHex': colorHex,
       'userId': userId,

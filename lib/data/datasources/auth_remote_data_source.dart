@@ -39,9 +39,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
     // ⭐ LƯU USERNAME VÀO FIRESTORE
     await firestore.collection("users").doc(user.uid).set({
+      "id": user.uid,
       "email": email,
       "username": username,
     });
+
 
     return UserModel(id: user.uid, email: email, username: username);
   }

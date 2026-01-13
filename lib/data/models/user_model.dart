@@ -23,7 +23,22 @@ class UserModel {
     return UserModel(
       id: firebaseUser.uid,
       email: firebaseUser.email ?? '',
-      username: "", // sẽ load từ Firestore sau
+      username: '',
     );
+  }
+
+  factory UserModel.fromJson(String docId, Map<String, dynamic> json) {
+    return UserModel(
+      id: docId,
+      email: json['email'] ?? '',
+      username: json['username'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'email': email,
+      'username': username,
+    };
   }
 }

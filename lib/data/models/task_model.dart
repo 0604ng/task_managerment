@@ -1,5 +1,5 @@
+// lib/data/models/task_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../../domain/entity/task_entity.dart';
 
 class TaskModel {
@@ -21,6 +21,7 @@ class TaskModel {
     required this.userId,
   });
 
+  // Model → Entity
   TaskEntity toEntity() => TaskEntity(
     id: id,
     title: title,
@@ -31,6 +32,7 @@ class TaskModel {
     userId: userId,
   );
 
+  // Entity → Model
   static TaskModel fromEntity(TaskEntity e) => TaskModel(
     id: e.id,
     title: e.title,
@@ -41,22 +43,24 @@ class TaskModel {
     userId: e.userId,
   );
 
+  // Firestore → Model
   factory TaskModel.fromDoc(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>?;
 
     return TaskModel(
-      id: data['id'] ?? doc.id,
-      title: data['title'],
-      description: data['description'],
-      isCompleted: data['isCompleted'],
-      dueDate: (data['dueDate'] as Timestamp).toDate(),
-      categoryId: data['categoryId'],
-      userId: data['userId'],
+      id: doc.id,
+      title: data?['title'] ?? '',
+      description: data?['description'] ?? '',
+      isCompleted: data?['isCompleted'] ?? false,
+      dueDate:
+      (data?['dueDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      categoryId: data?['categoryId'] ?? 'default',
+      userId: data?['userId'] ?? '',
     );
   }
 
+  // Model → Firestore Map
   Map<String, dynamic> toMap() => {
-    'id': id,
     'title': title,
     'description': description,
     'isCompleted': isCompleted,

@@ -36,8 +36,14 @@ class CategoryRepositoryImpl implements CategoryRepository {
   }
 
   @override
-  Future<void> reassignTasksToDefault(String deletedCategoryId, String defaultCategoryId) async {
-    await remoteDataSource.reassignTasksToDefault(deletedCategoryId, defaultCategoryId);
+  Future<void> reassignTasksToDefault(
+      String deletedCategoryId,
+      String defaultCategoryId,
+      ) async {
+    await remoteDataSource.reassignTasksToDefault(
+      deletedCategoryId,
+      defaultCategoryId,
+    );
   }
 
   @override

@@ -1,52 +1,87 @@
-// lib/data/datasources/category_remote_data_source.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/category_model.dart';
 
+/// ============================
+/// ABSTRACT
+/// ============================
 abstract class CategoryRemoteDataSource {
   Stream<List<CategoryModel>> getCategories(String userId);
 
   Future<void> createCategory(CategoryModel category);
   Future<void> updateCategory(CategoryModel category);
+
   Future<void> deleteCategory(String categoryId);
 
-  Future<void> reassignTasksToDefault(String deletedCategoryId, String defaultCategoryId) async {}
+  Future<void> reassignTasksToDefault(
+      String deletedCategoryId,
+      String defaultCategoryId,
+      );
 }
 
+/// ============================
+/// IMPLEMENTATION
+/// ============================
 class CategoryRemoteDataSourceImpl implements CategoryRemoteDataSource {
   final FirebaseFirestore firestore;
+  final FirebaseAuth auth;
 
-  CategoryRemoteDataSourceImpl(this.firestore);
+  CategoryRemoteDataSourceImpl(this.firestore, this.auth);
 
-  CollectionReference get categoryRef =>
-      firestore.collection("categories");
+  String get _uid => auth.currentUser!.uid;
+
+  CollectionReference<Map<String, dynamic>> get _categoryRef =>
+      firestore
+          .collection('users')
+          .doc(_uid)
+          .collection('categories');
+
+  CollectionReference<Map<String, dynamic>> get _tasksRef =>
+      firestore
+          .collection('users')
+          .doc(_uid)
+          .collection('tasks');
 
   @override
   Stream<List<CategoryModel>> getCategories(String userId) {
-    return categoryRef
-        .where("userId", isEqualTo: userId)
+    return _categoryRef
         .snapshots()
         .map((snapshot) =>
-        snapshot.docs.map((doc) => CategoryModel.fromDoc(doc)).toList());
+        snapshot.docs.map(CategoryModel.fromDoc).toList());
   }
 
   @override
-  Future<void> createCategory(CategoryModel category) {
-    return categoryRef.add(category.toMap());
+  Future<void> createCategory(CategoryModel category) async {
+    await _categoryRef
+        .doc(category.id)
+        .set(category.toMap());
   }
 
   @override
-  Future<void> updateCategory(CategoryModel category) {
-    return categoryRef.doc(category.id).update(category.toMap());
+  Future<void> updateCategory(CategoryModel category) async {
+    await _categoryRef
+        .doc(category.id)
+        .update(category.toMap());
   }
 
   @override
-  Future<void> deleteCategory(String categoryId) {
-    return categoryRef.doc(categoryId).delete();
+  Future<void> deleteCategory(String categoryId) async {
+    await _categoryRef.doc(categoryId).delete();
   }
 
   @override
-  Future<void> reassignTasksToDefault(String deletedCategoryId, String defaultCategoryId) {
-    // TODO: implement reassignTasksToDefault
-    throw UnimplementedError();
+  Future<void> reassignTasksToDefault(
+      String deletedCategoryId,
+      String defaultCategoryId,
+      ) async {
+    final tasks = await _tasksRef
+        .where('categoryId', isEqualTo: deletedCategoryId)
+        .get();
+
+    for (final doc in tasks.docs) {
+      await doc.reference.update({
+        'categoryId': defaultCategoryId,
+      });
+    }
   }
 }

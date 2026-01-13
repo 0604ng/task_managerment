@@ -42,10 +42,6 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  await FirebaseAuth.instance.setSettings(
-    appVerificationDisabledForTesting: true,
-  );
-
   final firebaseAuth = FirebaseAuth.instance;
 
   // AUTH datasource + repo
@@ -53,7 +49,11 @@ void main() async {
   final authRepository = AuthRepositoryImpl(authRemoteDataSource);
 
   // TASK datasource + repo
-  final taskRemoteDataSource = TaskRemoteDataSourceImpl(FirebaseFirestore.instance);
+  final taskRemoteDataSource = TaskRemoteDataSourceImpl(
+    FirebaseFirestore.instance,
+    FirebaseAuth.instance,
+  );
+
   final taskRepository = TaskRepositoryImpl(taskRemoteDataSource);
 
   runApp(
@@ -69,7 +69,7 @@ void main() async {
           )..add(WatchAuthStateRequested()),
         ),
 
-        // ⭐⭐ THÊM TASK BLOC Ở ĐÂY ⭐⭐
+        // TASK BLOC
         BlocProvider<TaskBloc>(
           create: (_) => TaskBloc(
             getTasksUseCase: GetTasksUseCase(taskRepository),
