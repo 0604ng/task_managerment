@@ -16,6 +16,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   AuthRemoteDataSourceImpl(this.auth);
 
+  // ⭐ HÀM HELPER ĐỂ MAP FIREBASE USER SANG USER MODEL
+  Future<UserModel?> _mapFirebaseUser(User? user) async {
+    if (user == null) return null;
+
+    final doc = await firestore.collection("users").doc(user.uid).get();
+
+    return UserModel(
+      id: user.uid,
+      email: user.email ?? "",
+      username: doc.data()?["username"] ?? "",
+    );
+  }
+
   @override
   Future<UserModel?> signIn(String email, String password) async {
     final credentials = await auth.signInWithEmailAndPassword(
@@ -23,7 +36,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       password: password,
     );
 
-    return UserModel.fromFirebaseUser(credentials.user);
+    // ⭐ SỬ DỤNG HÀM HELPER
+    return _mapFirebaseUser(credentials.user);
   }
 
   @override
@@ -44,8 +58,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       "username": username,
     });
 
-
-    return UserModel(id: user.uid, email: email, username: username);
+    // ⭐ SỬ DỤNG HÀM HELPER THAY VÌ TẠO UserModel TRỰC TIẾP
+    return _mapFirebaseUser(user);
   }
 
   @override
@@ -57,16 +71,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Stream<UserModel?> watchUser() {
+    // ⭐ SỬ DỤNG HÀM HELPER
     return auth.authStateChanges().asyncMap((firebaseUser) async {
-      if (firebaseUser == null) return null;
-
-      final doc = await firestore.collection("users").doc(firebaseUser.uid).get();
-
-      return UserModel(
-        id: firebaseUser.uid,
-        email: firebaseUser.email ?? "",
-        username: doc.data()?["username"] ?? "",
-      );
+      return _mapFirebaseUser(firebaseUser);
     });
   }
 }

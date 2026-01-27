@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
+import '../../../domain/usecases/auth/reset_password_usecase.dart';
 
 import '../../../domain/entity/user_entity.dart';
 import '../../../domain/usecases/auth/sign_in_usecase.dart';
@@ -15,6 +16,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SignUpUseCase signUpUseCase;
   final SignOutUseCase signOutUseCase;
   final WatchAuthStateUseCase watchAuthStateUseCase;
+  final ResetPasswordUseCase resetPasswordUseCase;
 
   StreamSubscription<UserEntity?>? _authStateSubscription;
 
@@ -23,38 +25,36 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.signUpUseCase,
     required this.signOutUseCase,
     required this.watchAuthStateUseCase,
+    required this.resetPasswordUseCase,
   }) : super(AuthInitial()) {
 
     /// LOGIN
     on<SignInRequested>((event, emit) async {
       emit(AuthLoading());
       try {
-        final user = await signInUseCase(event.email, event.password);
-        if (user != null) {
-          emit(AuthAuthenticated(user));
-        } else {
-          emit(AuthError("Login failed"));
-        }
+        await signInUseCase(event.email, event.password);
+        // ❌ KHÔNG emit AuthAuthenticated ở đây
+        // Firebase authStateChanges sẽ xử lý
       } catch (e) {
         emit(AuthError(e.toString()));
       }
     });
 
+
     /// SIGNUP
     on<SignUpRequested>((event, emit) async {
       emit(AuthLoading());
       try {
-        final user = await signUpUseCase(event.email, event.password,
-          event.username,);
-        if (user != null) {
-          emit(AuthAuthenticated(user));
-        } else {
-          emit(AuthError("Register failed"));
-        }
+        await signUpUseCase(
+          event.email,
+          event.password,
+          event.username,
+        );
       } catch (e) {
         emit(AuthError(e.toString()));
       }
     });
+
 
     /// SIGN OUT
     on<SignOutRequested>((event, emit) async {
@@ -75,6 +75,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         onError: (error, _) => AuthError(error.toString()),
       );
     });
+    on<ResetPasswordRequested>((event, emit) async {
+      emit(AuthLoading());
+      try {
+        await resetPasswordUseCase(event.email);
+        emit(PasswordResetEmailSent());
+      } catch (e) {
+        emit(AuthError(e.toString()));
+      }
+    });
+
   }
 
   @override

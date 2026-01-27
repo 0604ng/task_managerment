@@ -1,6 +1,8 @@
+//
 // lib/presentation/screen/sign_in_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'forgot_password_page.dart';
 
 // === ĐƯỜNG DẪN ĐÚNG THEO CẤU TRÚC CỦA BẠN ===
 // file đang ở: lib/presentation/screen/sign_in_page.dart
@@ -27,8 +29,6 @@ class _SignInPageState extends State<SignInPage> {
   final _passwordCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _hidePassword = true;
-
-  get _usernameCtrl => null;
 
   @override
   void dispose() {
@@ -109,14 +109,25 @@ class _SignInPageState extends State<SignInPage> {
                           },
                         ),
 
-                        const SizedBox(height: 20),
-                        TextFormField(
-                          controller: _usernameCtrl,
-                          decoration: const InputDecoration(labelText: "Username"),
-                          validator: (v) =>
-                          v != null && v.trim().isNotEmpty ? null : "Enter username",
+                        const SizedBox(height: 10),
+
+                        // === THÊM NÚT FORGOT PASSWORD ===
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const ForgotPasswordPage(),
+                                ),
+                              );
+                            },
+                            child: const Text("Forgot password?"),
+                          ),
                         ),
-                        const SizedBox(height: 16),
+
+                        const SizedBox(height: 10),
 
                         BlocBuilder<AuthBloc, AuthState>(
                           builder: (ctx, state) {
@@ -131,7 +142,6 @@ class _SignInPageState extends State<SignInPage> {
                                     : () {
                                   if (_formKey.currentState!
                                       .validate()) {
-                                    // SignInRequested phải được định nghĩa trong auth_event.dart
                                     context.read<AuthBloc>().add(
                                       SignInRequested(
                                         _emailCtrl.text.trim(),
@@ -158,7 +168,6 @@ class _SignInPageState extends State<SignInPage> {
                   const SizedBox(height: 20),
                   TextButton(
                     onPressed: () {
-                      // SignUpPage phải tồn tại ở lib/presentation/screen/sign_up_page.dart
                       Navigator.push(
                         context,
                         MaterialPageRoute(

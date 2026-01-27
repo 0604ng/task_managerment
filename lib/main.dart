@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'domain/usecases/auth/reset_password_usecase.dart';
 
 import 'firebase_options.dart';
 import 'const/theme.dart';
@@ -66,8 +67,10 @@ void main() async {
             signUpUseCase: SignUpUseCase(authRepository),
             signOutUseCase: SignOutUseCase(authRepository),
             watchAuthStateUseCase: WatchAuthStateUseCase(authRepository),
+            resetPasswordUseCase: ResetPasswordUseCase(authRepository), // ✅ FIX
           )..add(WatchAuthStateRequested()),
         ),
+
 
         // TASK BLOC
         BlocProvider<TaskBloc>(
