@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../presentation/blocs/auth/auth_bloc.dart';
-import '../presentation/blocs/auth/auth_event.dart';
-import '../presentation/blocs/auth/auth_state.dart';
+import '../../blocs/auth/auth_bloc.dart';
+
+import '../../blocs/auth/auth_event.dart';
+import '../../blocs/auth/auth_state.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});

@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../data/auth_data.dart';
-import '../screen/home.dart';
+import 'package:task_manager/presentation/pages/main/home_page.dart';
 import '../const/colors.dart';
 
 class MainPage extends StatelessWidget {
@@ -45,7 +45,7 @@ class MainPage extends StatelessWidget {
           ],
         ),
       ),
-      body: const HomeScreen(),
+      body: const HomePage(),
     );
   }
 }
