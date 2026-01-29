@@ -24,7 +24,6 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     required this.deleteTaskUseCase,
   }) : super(TaskInitial()) {
     on<LoadTasks>((event, emit) async {
-      emit(TaskLoading());
       await emit.forEach(
         getTasksUseCase(event.userId),
         onData: (tasks) => TaskLoaded(tasks),
@@ -32,14 +31,15 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
       );
     });
 
+
     on<LoadTasksByCategory>((event, emit) async {
-      emit(TaskLoading());
       await emit.forEach(
         getTasksByCategoryUseCase(event.userId, event.categoryId),
         onData: (tasks) => TaskLoaded(tasks),
         onError: (e, _) => TaskError(e.toString()),
       );
     });
+
 
     on<CreateTaskEvent>((event, emit) async {
       await createTaskUseCase(event.task);

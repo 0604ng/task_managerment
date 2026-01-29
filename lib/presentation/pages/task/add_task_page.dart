@@ -11,9 +11,6 @@ import '../../blocs/auth/auth_state.dart';
 import '../../blocs/task/task_bloc.dart';
 import '../../blocs/task/task_event.dart';
 
-import '../../blocs/category/category_bloc.dart';
-import '../../blocs/category/category_state.dart';
-
 class AddTaskPage extends StatefulWidget {
   const AddTaskPage({super.key});
 
@@ -26,9 +23,19 @@ class _AddTaskPageState extends State<AddTaskPage> {
   final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
 
-  DateTime? _dueDate;
-  String? _categoryId;
-  String _priority = 'Medium';
+  DateTime _dueDate = DateTime.now();
+  TimeOfDay _time = const TimeOfDay(hour: 9, minute: 0);
+  String _category = 'Work';
+
+  final List<String> _categories = const [
+    'Work',
+    'Family',
+    'Sport',
+    'Game',
+    'Shopping',
+    'Learning',
+    'Hobby',
+  ];
 
   @override
   void dispose() {
@@ -38,109 +45,55 @@ class _AddTaskPageState extends State<AddTaskPage> {
   }
 
   Future<void> _pickDate() async {
-    final now = DateTime.now();
     final selected = await showDatePicker(
       context: context,
-      initialDate: now,
-      firstDate: now.subtract(const Duration(days: 365)),
-      lastDate: now.add(const Duration(days: 3650)),
+      initialDate: _dueDate,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 3650)),
     );
-    if (selected != null) {
-      setState(() => _dueDate = selected);
-    }
+    if (selected != null) setState(() => _dueDate = selected);
+  }
+
+  Future<void> _pickTime() async {
+    final selected = await showTimePicker(
+      context: context,
+      initialTime: _time,
+    );
+    if (selected != null) setState(() => _time = selected);
   }
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
 
     final authState = context.read<AuthBloc>().state;
-    if (authState is! AuthAuthenticated) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Not authenticated')),
-      );
-      return;
-    }
+    if (authState is! AuthAuthenticated) return;
 
-    final userId = authState.user.id;
+    final dueDateTime = DateTime(
+      _dueDate.year,
+      _dueDate.month,
+      _dueDate.day,
+      _time.hour,
+      _time.minute,
+    );
 
     final task = TaskEntity(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: _titleCtrl.text.trim(),
       description: _descCtrl.text.trim(),
       isCompleted: false,
-      dueDate: _dueDate ?? DateTime.now().add(const Duration(days: 1)),
-      categoryId: _categoryId ?? 'default',
-      userId: userId,
+      dueDate: dueDateTime,
+      categoryId: _category.toLowerCase(), // work, family, ...
+      userId: authState.user.id,
     );
 
     context.read<TaskBloc>().add(CreateTaskEvent(task));
-
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Task created')),
-    );
-  }
-
-  /// ===============================
-  /// CATEGORY PICKER
-  /// ===============================
-  void _openCategoryPicker(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) {
-        return BlocBuilder<CategoryBloc, CategoryState>(
-          builder: (context, state) {
-            if (state is CategoryLoading) {
-              return const Padding(
-                padding: EdgeInsets.all(20),
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
-
-            if (state is CategoryLoaded) {
-              if (state.categories.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Center(child: Text('No categories')),
-                );
-              }
-
-              return ListView(
-                children: state.categories.map((category) {
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Color(category.colorHex),
-                    ),
-                    title: Text(category.name),
-                    onTap: () {
-                      setState(() {
-                        _categoryId = category.id;
-                      });
-                      Navigator.pop(context);
-                    },
-                  );
-                }).toList(),
-              );
-            }
-
-            return const Padding(
-              padding: EdgeInsets.all(20),
-              child: Text('Failed to load categories'),
-            );
-          },
-        );
-      },
-    );
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final dueText = _dueDate != null
-        ? DateFormat.yMMMd().format(_dueDate!)
-        : 'Select due date';
+    final dateText = DateFormat.yMMMd().format(_dueDate);
+    final timeText = _time.format(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -155,19 +108,14 @@ class _AddTaskPageState extends State<AddTaskPage> {
             child: Form(
               key: _formKey,
               child: ListView(
-                shrinkWrap: true,
                 children: [
-                  /// TASK NAME
+                  /// TITLE
                   TextFormField(
                     controller: _titleCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Task name',
-                      hintText: 'Enter task name',
-                    ),
+                    decoration:
+                    const InputDecoration(labelText: 'Task name'),
                     validator: (v) =>
-                    v != null && v.trim().isNotEmpty
-                        ? null
-                        : 'Name required',
+                    v != null && v.isNotEmpty ? null : 'Required',
                   ),
 
                   const SizedBox(height: 12),
@@ -175,84 +123,59 @@ class _AddTaskPageState extends State<AddTaskPage> {
                   /// DESCRIPTION
                   TextFormField(
                     controller: _descCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Description',
-                      hintText: 'Details (optional)',
-                    ),
-                    maxLines: 4,
+                    decoration:
+                    const InputDecoration(labelText: 'Description'),
+                    maxLines: 3,
                   ),
 
                   const SizedBox(height: 12),
 
-                  /// DUE DATE
+                  /// DATE
                   ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Due date'),
-                    subtitle: Text(dueText),
+                    title: const Text('Date'),
+                    subtitle: Text(dateText),
                     trailing: const Icon(Icons.calendar_today),
                     onTap: _pickDate,
                   ),
 
-                  const SizedBox(height: 8),
+                  /// TIME
+                  ListTile(
+                    title: const Text('Time'),
+                    subtitle: Text(timeText),
+                    trailing: const Icon(Icons.access_time),
+                    onTap: _pickTime,
+                  ),
 
-                  /// CATEGORY
-                  BlocBuilder<CategoryBloc, CategoryState>(
-                    builder: (context, state) {
-                      String label = 'Default';
+                  const SizedBox(height: 12),
 
-                      if (state is CategoryLoaded && state.categories.isNotEmpty) {
-                        final selected = state.categories.firstWhere(
-                              (c) => c.id == _categoryId,
-                          orElse: () => state.categories.first,
-                        );
-                        label = selected.name;
-                      }
-
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text('Category'),
-                        subtitle: Text(label),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _openCategoryPicker(context),
-                      );
+                  /// CATEGORY DROPDOWN
+                  DropdownButtonFormField<String>(
+                    initialValue: _category,
+                    decoration:
+                    const InputDecoration(labelText: 'Category'),
+                    items: _categories
+                        .map(
+                          (c) => DropdownMenuItem(
+                        value: c,
+                        child: Text(c),
+                      ),
+                    )
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) setState(() => _category = v);
                     },
                   ),
 
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 20),
 
-                  /// PRIORITY
-                  DropdownButtonFormField<String>(
-                    initialValue: _priority,
-                    items: const [
-                      DropdownMenuItem(value: 'Low', child: Text('Low')),
-                      DropdownMenuItem(value: 'Medium', child: Text('Medium')),
-                      DropdownMenuItem(value: 'High', child: Text('High')),
-                    ],
-                    onChanged: (v) =>
-                        setState(() => _priority = v ?? 'Medium'),
-                    decoration:
-                    const InputDecoration(labelText: 'Priority'),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  /// ACTIONS
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: const Text('Cancel'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _save,
-                          child: const Text('Create'),
-                        ),
-                      ),
-                    ],
+                  /// CREATE
+                  ElevatedButton(
+                    onPressed: _save,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text('Create'),
                   ),
                 ],
               ),

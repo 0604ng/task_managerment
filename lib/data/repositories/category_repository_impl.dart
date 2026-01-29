@@ -9,8 +9,19 @@ class CategoryRepositoryImpl implements CategoryRepository {
 
   CategoryRepositoryImpl(this.remoteDataSource);
 
+  /// ✅ GIẢI PHÁP TỐT NHẤT: Chỉ giữ 1 method, cả 2 đều gọi cùng implementation
   @override
   Stream<List<CategoryEntity>> getCategories(String userId) {
+    return _getCategoriesImpl(userId);
+  }
+
+  @override
+  Stream<List<CategoryEntity>> getCategoriesByUserId(String userId) {
+    return _getCategoriesImpl(userId);
+  }
+
+  /// Private method chứa logic chung
+  Stream<List<CategoryEntity>> _getCategoriesImpl(String userId) {
     return remoteDataSource.getCategories(userId).map(
           (models) => models.map((m) => m.toEntity()).toList(),
     );
@@ -44,11 +55,5 @@ class CategoryRepositoryImpl implements CategoryRepository {
       deletedCategoryId,
       defaultCategoryId,
     );
-  }
-
-  @override
-  Stream<List<CategoryEntity>> getCategoriesByUserId(String userId) {
-    // TODO: implement getCategoriesByUserId
-    throw UnimplementedError();
   }
 }
