@@ -24,3 +24,8 @@ class ResetPasswordRequested extends AuthEvent {
 
   ResetPasswordRequested(this.email);
 }
+class UpdateAvatarRequested extends AuthEvent {
+  final String avatarUrl;
+  UpdateAvatarRequested(this.avatarUrl);
+}
+

@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'domain/usecases/auth/update_avatar_usecase.dart';
 import 'firebase_options.dart';
 import 'const/theme.dart';
+import 'core/services/notification_service.dart';
 
 // ================= DATA SOURCES =================
 import 'data/datasources/auth_remote_data_source.dart';
@@ -44,6 +45,7 @@ import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/auth/auth_event.dart';
 import 'presentation/blocs/task/task_bloc.dart';
 import 'presentation/blocs/category/category_bloc.dart';
+import 'presentation/blocs/theme/theme_cubit.dart';
 
 // ================= ENTRY =================
 import 'presentation/pages/auth/auth_gate.dart';
@@ -53,29 +55,22 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
+  await NotificationService.init();
   final firebaseAuth = FirebaseAuth.instance;
   final firestore = FirebaseFirestore.instance;
 
-  // ========= AUTH =========
-  final authRemoteDataSource = AuthRemoteDataSourceImpl(firebaseAuth);
-  final authRepository = AuthRepositoryImpl(authRemoteDataSource);
-
-  // ========= TASK =========
-  final taskRemoteDataSource =
-  TaskRemoteDataSourceImpl(firestore, firebaseAuth);
-  final taskRepository = TaskRepositoryImpl(taskRemoteDataSource);
-
-  // ========= CATEGORY =========
-  final categoryRemoteDataSource =
-  CategoryRemoteDataSourceImpl(firestore, firebaseAuth);
-  final categoryRepository =
-  CategoryRepositoryImpl(categoryRemoteDataSource);
+  final authRepository =
+  AuthRepositoryImpl(AuthRemoteDataSourceImpl(firebaseAuth));
+  final taskRepository = TaskRepositoryImpl(
+      TaskRemoteDataSourceImpl(firestore, firebaseAuth));
+  final categoryRepository = CategoryRepositoryImpl(
+      CategoryRemoteDataSourceImpl(firestore, firebaseAuth));
 
   runApp(
     MultiBlocProvider(
       providers: [
-        // 🔐 AUTH
+        BlocProvider(create: (_) => ThemeCubit()),
+
         BlocProvider<AuthBloc>(
           create: (_) => AuthBloc(
             signInUseCase: SignInUseCase(authRepository),
@@ -85,10 +80,13 @@ void main() async {
             WatchAuthStateUseCase(authRepository),
             resetPasswordUseCase:
             ResetPasswordUseCase(authRepository),
+
+            updateAvatarUseCase: // 🔥 ADD
+            UpdateAvatarUseCase(authRepository),
           )..add(WatchAuthStateRequested()),
         ),
 
-        // 📝 TASK
+
         BlocProvider<TaskBloc>(
           create: (_) => TaskBloc(
             getTasksUseCase: GetTasksUseCase(taskRepository),
@@ -103,7 +101,6 @@ void main() async {
           ),
         ),
 
-        // 🏷 CATEGORY (🔥 QUAN TRỌNG)
         BlocProvider<CategoryBloc>(
           create: (_) => CategoryBloc(
             createCategoryUseCase:
@@ -131,13 +128,17 @@ class TaskManagerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Task Manager',
-      debugShowCheckedModeBanner: false,
-      theme: lightTheme,
-      darkTheme: darkTheme,
-      themeMode: ThemeMode.system,
-      home: const AuthGate(),
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return MaterialApp(
+          title: 'Task Manager',
+          debugShowCheckedModeBanner: false,
+          theme: lightTheme,
+          darkTheme: darkTheme,
+          themeMode: themeMode,
+          home: const AuthGate(),
+        );
+      },
     );
   }
 }

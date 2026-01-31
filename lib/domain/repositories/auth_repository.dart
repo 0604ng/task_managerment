@@ -5,5 +5,7 @@ abstract class AuthRepository {
   Future<UserEntity?> signUp(String email, String password, String username);
   Future<void> signOut();
   Future<void> sendPasswordReset(String email);
+  Future<void> updateAvatar(String avatarUrl);
+
   Stream<UserEntity?> watchUser();
 }

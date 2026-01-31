@@ -1,3 +1,4 @@
+// lib/presentation/pages/home/home_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -6,9 +7,36 @@ import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_state.dart';
 import '../../blocs/task/task_bloc.dart';
 import '../../blocs/task/task_state.dart';
+import '../../../domain/entity/task_entity.dart';
+import 'package:intl/intl.dart';
+import '../task/edit_task_page.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  bool _showToday = true;
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  List<TaskEntity> _filterTasks(List<TaskEntity> tasks) {
+    final now = DateTime.now();
+    final tomorrow = now.add(const Duration(days: 1));
+
+    return tasks.where((task) {
+      if (task.isCompleted) return false;
+
+      return _showToday
+          ? _isSameDay(task.dueDate, now)
+          : _isSameDay(task.dueDate, tomorrow);
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +54,13 @@ class HomePage extends StatelessWidget {
             int completed = 0;
             int missed = 0;
 
+            List<TaskEntity> filteredTasks = [];
+
             if (taskState is TaskLoaded) {
               total = taskState.tasks.length;
               completed =
                   taskState.tasks.where((t) => t.isCompleted).length;
-              missed = 0; // tạm thời
+              filteredTasks = _filterTasks(taskState.tasks);
             }
 
             final todo = total - completed - missed;
@@ -74,7 +104,6 @@ class HomePage extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
 
-                          // PIE + STATS
                           Row(
                             children: [
                               SizedBox(
@@ -85,12 +114,9 @@ class HomePage extends StatelessWidget {
                                     sectionsSpace: 2,
                                     centerSpaceRadius: 40,
                                     sections: [
-                                      _pieSection(
-                                          todo, Colors.orange),
-                                      _pieSection(
-                                          completed, Colors.green),
-                                      _pieSection(
-                                          missed, Colors.black),
+                                      _pieSection(todo, Colors.orange),
+                                      _pieSection(completed, Colors.green),
+                                      _pieSection(missed, Colors.black),
                                     ],
                                   ),
                                 ),
@@ -102,20 +128,17 @@ class HomePage extends StatelessWidget {
                                   CrossAxisAlignment.start,
                                   children: [
                                     _LegendItem(
-                                      color: Colors.orange,
-                                      label: 'To do',
-                                      value: todo,
-                                    ),
+                                        color: Colors.orange,
+                                        label: 'To do',
+                                        value: todo),
                                     _LegendItem(
-                                      color: Colors.green,
-                                      label: 'Completed',
-                                      value: completed,
-                                    ),
+                                        color: Colors.green,
+                                        label: 'Completed',
+                                        value: completed),
                                     _LegendItem(
-                                      color: Colors.black,
-                                      label: 'Missed',
-                                      value: missed,
-                                    ),
+                                        color: Colors.black,
+                                        label: 'Missed',
+                                        value: missed),
                                   ],
                                 ),
                               )
@@ -124,7 +147,6 @@ class HomePage extends StatelessWidget {
 
                           const SizedBox(height: 16),
 
-                          // % + Total
                           Row(
                             mainAxisAlignment:
                             MainAxisAlignment.spaceBetween,
@@ -164,30 +186,129 @@ class HomePage extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
-                  // 📅 Tabs
+                  // 📅 TABS
                   Row(
-                    children: const [
+                    children: [
                       Expanded(
                         child: _TabButton(
                           title: "Today's tasks",
-                          isActive: true,
+                          isActive: _showToday,
+                          onPressed: () =>
+                              setState(() => _showToday = true),
                         ),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: _TabButton(
                           title: "Tomorrow's tasks",
-                          isActive: false,
+                          isActive: !_showToday,
+                          onPressed: () =>
+                              setState(() => _showToday = false),
                         ),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
-                  if (taskState is TaskLoaded &&
-                      taskState.tasks.isEmpty)
-                    const Center(child: Text('No tasks')),
+                  // 📋 TASK LIST
+                  if (filteredTasks.isEmpty)
+                    const Center(child: Text('No tasks'))
+                  else
+                    Column(
+                      children: filteredTasks.map((task) {
+                        final isOverdue =
+                            !task.isCompleted && task.dueDate.isBefore(DateTime.now());
+
+                        return InkWell(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => EditTaskPage(task: task),
+                              ),
+                            );
+                          },
+                          child: Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            elevation: 2,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  /// STATUS ICON
+                                  CircleAvatar(
+                                    radius: 18,
+                                    backgroundColor: isOverdue
+                                        ? Colors.red.withValues(alpha: 0.15)
+                                        : Colors.orange.withValues(alpha: 0.15),
+                                    child: Icon(
+                                      isOverdue
+                                          ? Icons.warning_amber_rounded
+                                          : Icons.pending_actions,
+                                      color: isOverdue ? Colors.red : Colors.orange,
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 12),
+
+                                  /// CONTENT
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        /// TITLE
+                                        Text(
+                                          task.title,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+
+                                        /// DESCRIPTION
+                                        if (task.description.isNotEmpty) ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            task.description,
+                                            style: TextStyle(
+                                              color: Colors.grey[700],
+                                            ),
+                                          ),
+                                        ],
+
+                                        const SizedBox(height: 8),
+
+                                        /// DATE + TIME
+                                        Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.access_time,
+                                              size: 16,
+                                              color: Colors.grey,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              DateFormat('dd/MM/yyyy • HH:mm')
+                                                  .format(task.dueDate),
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+
                 ],
               ),
             );
@@ -236,10 +357,12 @@ class _LegendItem extends StatelessWidget {
 class _TabButton extends StatelessWidget {
   final String title;
   final bool isActive;
+  final VoidCallback onPressed;
 
   const _TabButton({
     required this.title,
     required this.isActive,
+    required this.onPressed,
   });
 
   @override
@@ -255,7 +378,7 @@ class _TabButton extends StatelessWidget {
         ),
         padding: const EdgeInsets.symmetric(vertical: 14),
       ),
-      onPressed: () {},
+      onPressed: onPressed,
       child: Text(title),
     );
   }

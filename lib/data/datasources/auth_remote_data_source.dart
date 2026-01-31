@@ -8,6 +8,9 @@ abstract class AuthRemoteDataSource {
   Future<void> signOut();
   Future<void> sendPasswordReset(String email);
   Stream<UserModel?> watchUser();
+
+  // 🔥 ADD
+  Future<void> updateAvatar(String avatarUrl);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -16,16 +19,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   AuthRemoteDataSourceImpl(this.auth);
 
-  // ⭐ HÀM HELPER ĐỂ MAP FIREBASE USER SANG USER MODEL
   Future<UserModel?> _mapFirebaseUser(User? user) async {
     if (user == null) return null;
 
-    final doc = await firestore.collection("users").doc(user.uid).get();
+    final doc =
+    await firestore.collection("users").doc(user.uid).get();
+    final data = doc.data() ?? {};
 
     return UserModel(
       id: user.uid,
       email: user.email ?? "",
-      username: doc.data()?["username"] ?? "",
+      username: data["username"] ?? "",
+      avatarUrl: data["avatarUrl"],
     );
   }
 
@@ -35,30 +40,28 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       email: email,
       password: password,
     );
-
-    // ⭐ SỬ DỤNG HÀM HELPER
     return _mapFirebaseUser(credentials.user);
   }
 
   @override
-  Future<UserModel?> signUp(String email, String password, String username) async {
-    final credentials = await auth.createUserWithEmailAndPassword(
+  Future<UserModel?> signUp(
+      String email, String password, String username) async {
+    final credentials =
+    await auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
 
     final user = credentials.user;
-
     if (user == null) return null;
 
-    // ⭐ LƯU USERNAME VÀO FIRESTORE
     await firestore.collection("users").doc(user.uid).set({
       "id": user.uid,
       "email": email,
       "username": username,
+      "avatarUrl": null,
     });
 
-    // ⭐ SỬ DỤNG HÀM HELPER THAY VÌ TẠO UserModel TRỰC TIẾP
     return _mapFirebaseUser(user);
   }
 
@@ -71,9 +74,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Stream<UserModel?> watchUser() {
-    // ⭐ SỬ DỤNG HÀM HELPER
-    return auth.authStateChanges().asyncMap((firebaseUser) async {
-      return _mapFirebaseUser(firebaseUser);
+    return auth.authStateChanges().asyncMap(_mapFirebaseUser);
+  }
+
+  // 🔥 NEW
+  @override
+  Future<void> updateAvatar(String avatarUrl) async {
+    final uid = auth.currentUser!.uid;
+    await firestore.collection("users").doc(uid).update({
+      "avatarUrl": avatarUrl,
     });
   }
 }

@@ -1,12 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
-import '../../../domain/usecases/auth/reset_password_usecase.dart';
 
 import '../../../domain/entity/user_entity.dart';
 import '../../../domain/usecases/auth/sign_in_usecase.dart';
 import '../../../domain/usecases/auth/sign_up_usecase.dart';
 import '../../../domain/usecases/auth/sign_out_usecase.dart';
 import '../../../domain/usecases/auth/watch_auth_state_usecase.dart';
+import '../../../domain/usecases/auth/reset_password_usecase.dart';
+import '../../../domain/usecases/auth/update_avatar_usecase.dart'; // 🔥 ADD
 
 import 'auth_event.dart';
 import 'auth_state.dart';
@@ -17,6 +18,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SignOutUseCase signOutUseCase;
   final WatchAuthStateUseCase watchAuthStateUseCase;
   final ResetPasswordUseCase resetPasswordUseCase;
+  final UpdateAvatarUseCase updateAvatarUseCase; // 🔥 ADD
 
   StreamSubscription<UserEntity?>? _authStateSubscription;
 
@@ -26,6 +28,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.signOutUseCase,
     required this.watchAuthStateUseCase,
     required this.resetPasswordUseCase,
+    required this.updateAvatarUseCase, // 🔥 ADD
   }) : super(AuthInitial()) {
 
     /// LOGIN
@@ -33,13 +36,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthLoading());
       try {
         await signInUseCase(event.email, event.password);
-        // ❌ KHÔNG emit AuthAuthenticated ở đây
-        // Firebase authStateChanges sẽ xử lý
+        // authStateChanges sẽ emit AuthAuthenticated
       } catch (e) {
         emit(AuthError(e.toString()));
       }
     });
-
 
     /// SIGNUP
     on<SignUpRequested>((event, emit) async {
@@ -55,18 +56,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     });
 
-
     /// SIGN OUT
     on<SignOutRequested>((event, emit) async {
       await signOutUseCase();
       emit(AuthUnauthenticated());
     });
 
-    /// WATCH AUTH STATE - THÊM await Ở ĐÂY
+    /// WATCH AUTH STATE
     on<WatchAuthStateRequested>((event, emit) async {
       emit(AuthLoading());
 
-      await emit.forEach<UserEntity?>(  // ← THÊM await
+      await emit.forEach<UserEntity?>(
         watchAuthStateUseCase(),
         onData: (user) {
           if (user == null) return AuthUnauthenticated();
@@ -75,6 +75,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         onError: (error, _) => AuthError(error.toString()),
       );
     });
+
+    /// RESET PASSWORD
     on<ResetPasswordRequested>((event, emit) async {
       emit(AuthLoading());
       try {
@@ -85,6 +87,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     });
 
+    /// 🔥 UPDATE AVATAR (NEW)
+    on<UpdateAvatarRequested>((event, emit) async {
+      if (state is! AuthAuthenticated) return;
+
+      final current = state as AuthAuthenticated;
+
+      try {
+        await updateAvatarUseCase(event.avatarUrl);
+
+        emit(
+          AuthAuthenticated(
+            current.user.copyWith(
+              avatarUrl: event.avatarUrl,
+            ),
+          ),
+        );
+      } catch (e) {
+        emit(AuthError(e.toString()));
+      }
+    });
   }
 
   @override

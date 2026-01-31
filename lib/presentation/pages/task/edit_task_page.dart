@@ -1,11 +1,11 @@
-// lib/presentation/pages/task/edit_task_page.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../blocs/task/task_bloc.dart';
 import '../../blocs/task/task_event.dart';
 import '../../../const/colors.dart';
 import '../../../domain/entity/task_entity.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class EditTaskPage extends StatefulWidget {
   final TaskEntity task;
@@ -19,7 +19,8 @@ class _EditTaskPageState extends State<EditTaskPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleCtrl;
   late TextEditingController _descCtrl;
-  DateTime? _dueDate;
+  late DateTime _date;
+  late TimeOfDay _time;
   bool _completed = false;
 
   @override
@@ -27,49 +28,58 @@ class _EditTaskPageState extends State<EditTaskPage> {
     super.initState();
     _titleCtrl = TextEditingController(text: widget.task.title);
     _descCtrl = TextEditingController(text: widget.task.description);
-    _dueDate = widget.task.dueDate;
+    _date = widget.task.dueDate;
+    _time = TimeOfDay.fromDateTime(widget.task.dueDate);
     _completed = widget.task.isCompleted;
   }
 
-  @override
-  void dispose() {
-    _titleCtrl.dispose();
-    _descCtrl.dispose();
-    super.dispose();
-  }
-
   Future<void> _pickDate() async {
-    final now = DateTime.now();
     final selected = await showDatePicker(
       context: context,
-      initialDate: _dueDate ?? now,
-      firstDate: now.subtract(const Duration(days: 365)),
-      lastDate: now.add(const Duration(days: 3650)),
+      initialDate: _date,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 3650)),
     );
-    if (selected != null) setState(() => _dueDate = selected);
+    if (selected != null) setState(() => _date = selected);
+  }
+
+  Future<void> _pickTime() async {
+    final selected = await showTimePicker(
+      context: context,
+      initialTime: _time,
+    );
+    if (selected != null) setState(() => _time = selected);
   }
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
 
+    final dueDateTime = DateTime(
+      _date.year,
+      _date.month,
+      _date.day,
+      _time.hour,
+      _time.minute,
+    );
+
     final updated = widget.task.copyWith(
       title: _titleCtrl.text.trim(),
       description: _descCtrl.text.trim(),
-      dueDate: _dueDate,
+      dueDate: dueDateTime,
       isCompleted: _completed,
     );
 
     context.read<TaskBloc>().add(UpdateTaskEvent(updated));
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Task updated')));
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final dueText = _dueDate != null ? DateFormat.yMMMd().format(_dueDate!) : 'Select due date';
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Task'), backgroundColor: AppColors.primary),
+      appBar: AppBar(
+        title: const Text('Edit Task'),
+        backgroundColor: AppColors.primary,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(14),
         child: Card(
@@ -78,26 +88,32 @@ class _EditTaskPageState extends State<EditTaskPage> {
             child: Form(
               key: _formKey,
               child: ListView(
-                shrinkWrap: true,
                 children: [
                   TextFormField(
                     controller: _titleCtrl,
                     decoration: const InputDecoration(labelText: 'Task name'),
-                    validator: (v) => v != null && v.trim().isNotEmpty ? null : 'Name required',
+                    validator: (v) =>
+                    v != null && v.isNotEmpty ? null : 'Required',
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
                     controller: _descCtrl,
-                    decoration: const InputDecoration(labelText: 'Description'),
+                    decoration:
+                    const InputDecoration(labelText: 'Description'),
                     maxLines: 4,
                   ),
                   const SizedBox(height: 10),
                   ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Due date'),
-                    subtitle: Text(dueText),
-                    trailing: IconButton(icon: const Icon(Icons.calendar_today), onPressed: _pickDate),
+                    title: const Text('Date'),
+                    subtitle: Text(DateFormat.yMMMd().format(_date)),
+                    trailing: const Icon(Icons.calendar_today),
                     onTap: _pickDate,
+                  ),
+                  ListTile(
+                    title: const Text('Time'),
+                    subtitle: Text(_time.format(context)),
+                    trailing: const Icon(Icons.access_time),
+                    onTap: _pickTime,
                   ),
                   SwitchListTile(
                     title: const Text('Completed'),
@@ -105,13 +121,10 @@ class _EditTaskPageState extends State<EditTaskPage> {
                     onChanged: (v) => setState(() => _completed = v),
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(child: OutlinedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel'))),
-                      const SizedBox(width: 8),
-                      Expanded(child: ElevatedButton(onPressed: _save, child: const Text('Save'))),
-                    ],
-                  )
+                  ElevatedButton(
+                    onPressed: _save,
+                    child: const Text('Save'),
+                  ),
                 ],
               ),
             ),

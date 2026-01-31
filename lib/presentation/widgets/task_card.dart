@@ -62,7 +62,6 @@ class TaskCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            decoration: task.isCompleted ? TextDecoration.lineThrough : TextDecoration.none,
                           ),
                         ),
                       ),

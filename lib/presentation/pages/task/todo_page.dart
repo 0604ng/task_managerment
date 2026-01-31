@@ -1,14 +1,14 @@
+// lib/presentation/pages/task/todo_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'edit_task_page.dart';
 
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_state.dart';
-
 import '../../blocs/task/task_bloc.dart';
 import '../../blocs/task/task_event.dart';
 import '../../blocs/task/task_state.dart';
+import 'edit_task_page.dart';
 
 class TodoPage extends StatefulWidget {
   const TodoPage({super.key});
@@ -22,7 +22,6 @@ class _TodoPageState extends State<TodoPage> {
   void initState() {
     super.initState();
 
-    // 🔥 LOAD TASKS KHI MỞ PAGE
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated) {
       context.read<TaskBloc>().add(
@@ -31,7 +30,6 @@ class _TodoPageState extends State<TodoPage> {
     }
   }
 
-  // 🎨 Map category -> icon + color
   IconData _categoryIcon(String category) {
     switch (category) {
       case 'work':
@@ -96,9 +94,12 @@ class _TodoPageState extends State<TodoPage> {
         }
 
         if (state is TaskLoaded) {
-          final todos = state.tasks
-              .where((task) => !task.isCompleted)
-              .toList();
+          final now = DateTime.now();
+
+          /// ✅ CHỈ TODO: chưa complete + CHƯA quá hạn
+          final todos = state.tasks.where((task) {
+            return !task.isCompleted && task.dueDate.isAfter(now);
+          }).toList();
 
           if (todos.isEmpty) {
             return const Center(child: Text('No to-do tasks'));
@@ -126,7 +127,6 @@ class _TodoPageState extends State<TodoPage> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        /// CATEGORY ICON
                         CircleAvatar(
                           backgroundColor: _categoryColor(task.categoryId)
                               .withValues(alpha: 0.15),
@@ -135,10 +135,7 @@ class _TodoPageState extends State<TodoPage> {
                             color: _categoryColor(task.categoryId),
                           ),
                         ),
-
                         const SizedBox(width: 12),
-
-                        /// CONTENT
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,17 +147,15 @@ class _TodoPageState extends State<TodoPage> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-
                               if (task.description.isNotEmpty) ...[
                                 const SizedBox(height: 4),
                                 Text(
                                   task.description,
-                                  style: TextStyle(color: Colors.grey[700]),
+                                  style:
+                                  TextStyle(color: Colors.grey[700]),
                                 ),
                               ],
-
                               const SizedBox(height: 8),
-
                               Row(
                                 children: [
                                   const Icon(
@@ -181,8 +176,6 @@ class _TodoPageState extends State<TodoPage> {
                             ],
                           ),
                         ),
-
-                        /// 🔄 IN PROGRESS ICON
                         const Icon(
                           Icons.pending_actions,
                           color: Colors.orange,
@@ -192,7 +185,6 @@ class _TodoPageState extends State<TodoPage> {
                   ),
                 ),
               );
-
             },
           );
         }
