@@ -25,7 +25,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _changeAvatar() async {
     final File? file =
-    await ImagePickAndCropService.pickAndCropAvatar(context);
+    await ImagePickService.pickAvatar();
 
     if (file == null) return;
 

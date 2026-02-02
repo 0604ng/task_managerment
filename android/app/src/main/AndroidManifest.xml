@@ -2,6 +2,7 @@
     package="com.example.task_managerment">
 
     <!-- ✅ Permissions -->
+    <uses-permission android:name="android.permission.INTERNET"/> <!-- ⭐ THÊM DÒNG NÀY -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
@@ -41,7 +42,6 @@
 
     </application>
 
-    <!-- 🔍 Queries chỉ dùng cho intent -->
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>

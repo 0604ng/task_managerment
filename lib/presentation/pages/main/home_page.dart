@@ -1,14 +1,13 @@
-// lib/presentation/pages/home/home_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_state.dart';
 import '../../blocs/task/task_bloc.dart';
 import '../../blocs/task/task_state.dart';
 import '../../../domain/entity/task_entity.dart';
-import 'package:intl/intl.dart';
 import '../task/edit_task_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -57,9 +56,19 @@ class _HomePageState extends State<HomePage> {
             List<TaskEntity> filteredTasks = [];
 
             if (taskState is TaskLoaded) {
+              final now = DateTime.now();
+
               total = taskState.tasks.length;
-              completed =
-                  taskState.tasks.where((t) => t.isCompleted).length;
+
+              completed = taskState.tasks
+                  .where((t) => t.isCompleted)
+                  .length;
+
+              missed = taskState.tasks
+                  .where((t) =>
+              !t.isCompleted && t.dueDate.isBefore(now))
+                  .length;
+
               filteredTasks = _filterTasks(taskState.tasks);
             }
 
@@ -71,7 +80,7 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 👋 Welcome
+                  /// 👋 Welcome
                   Text(
                     'Welcome, ${user.username} 👋',
                     style: Theme.of(context)
@@ -82,7 +91,7 @@ class _HomePageState extends State<HomePage> {
 
                   const SizedBox(height: 20),
 
-                  // 📊 Progress Card
+                  /// 📊 Progress Card
                   Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
@@ -114,9 +123,13 @@ class _HomePageState extends State<HomePage> {
                                     sectionsSpace: 2,
                                     centerSpaceRadius: 40,
                                     sections: [
-                                      _pieSection(todo, Colors.orange),
-                                      _pieSection(completed, Colors.green),
-                                      _pieSection(missed, Colors.black),
+                                      if (todo > 0)
+                                        _pieSection(todo, Colors.orange),
+                                      if (completed > 0)
+                                        _pieSection(
+                                            completed, Colors.green),
+                                      if (missed > 0)
+                                        _pieSection(missed, Colors.black),
                                     ],
                                   ),
                                 ),
@@ -128,17 +141,20 @@ class _HomePageState extends State<HomePage> {
                                   CrossAxisAlignment.start,
                                   children: [
                                     _LegendItem(
-                                        color: Colors.orange,
-                                        label: 'To do',
-                                        value: todo),
+                                      color: Colors.orange,
+                                      label: 'To do',
+                                      value: todo,
+                                    ),
                                     _LegendItem(
-                                        color: Colors.green,
-                                        label: 'Completed',
-                                        value: completed),
+                                      color: Colors.green,
+                                      label: 'Completed',
+                                      value: completed,
+                                    ),
                                     _LegendItem(
-                                        color: Colors.black,
-                                        label: 'Missed',
-                                        value: missed),
+                                      color: Colors.black,
+                                      label: 'Missed',
+                                      value: missed,
+                                    ),
                                   ],
                                 ),
                               )
@@ -186,7 +202,7 @@ class _HomePageState extends State<HomePage> {
 
                   const SizedBox(height: 24),
 
-                  // 📅 TABS
+                  /// 📅 Tabs
                   Row(
                     children: [
                       Expanded(
@@ -211,75 +227,78 @@ class _HomePageState extends State<HomePage> {
 
                   const SizedBox(height: 20),
 
-                  // 📋 TASK LIST
+                  /// 📋 Task List
                   if (filteredTasks.isEmpty)
                     const Center(child: Text('No tasks'))
                   else
                     Column(
                       children: filteredTasks.map((task) {
-                        final isOverdue =
-                            !task.isCompleted && task.dueDate.isBefore(DateTime.now());
+                        final isOverdue = !task.isCompleted &&
+                            task.dueDate
+                                .isBefore(DateTime.now());
 
                         return InkWell(
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => EditTaskPage(task: task),
+                                builder: (_) =>
+                                    EditTaskPage(task: task),
                               ),
                             );
                           },
                           child: Card(
-                            margin: const EdgeInsets.only(bottom: 12),
+                            margin:
+                            const EdgeInsets.only(bottom: 12),
                             elevation: 2,
                             child: Padding(
                               padding: const EdgeInsets.all(12),
                               child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
                                 children: [
-                                  /// STATUS ICON
                                   CircleAvatar(
                                     radius: 18,
                                     backgroundColor: isOverdue
-                                        ? Colors.red.withValues(alpha: 0.15)
-                                        : Colors.orange.withValues(alpha: 0.15),
+                                        ? Colors.red
+                                        .withValues(alpha: 0.15)
+                                        : Colors.orange
+                                        .withValues(alpha: 0.15),
                                     child: Icon(
                                       isOverdue
-                                          ? Icons.warning_amber_rounded
+                                          ? Icons
+                                          .warning_amber_rounded
                                           : Icons.pending_actions,
-                                      color: isOverdue ? Colors.red : Colors.orange,
+                                      color: isOverdue
+                                          ? Colors.red
+                                          : Colors.orange,
                                     ),
                                   ),
-
                                   const SizedBox(width: 12),
-
-                                  /// CONTENT
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
                                       children: [
-                                        /// TITLE
                                         Text(
                                           task.title,
                                           style: const TextStyle(
                                             fontSize: 16,
-                                            fontWeight: FontWeight.w600,
+                                            fontWeight:
+                                            FontWeight.w600,
                                           ),
                                         ),
-
-                                        /// DESCRIPTION
-                                        if (task.description.isNotEmpty) ...[
+                                        if (task
+                                            .description.isNotEmpty) ...[
                                           const SizedBox(height: 4),
                                           Text(
                                             task.description,
                                             style: TextStyle(
-                                              color: Colors.grey[700],
+                                              color:
+                                              Colors.grey[700],
                                             ),
                                           ),
                                         ],
-
                                         const SizedBox(height: 8),
-
-                                        /// DATE + TIME
                                         Row(
                                           children: [
                                             const Icon(
@@ -289,8 +308,10 @@ class _HomePageState extends State<HomePage> {
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
-                                              DateFormat('dd/MM/yyyy • HH:mm')
-                                                  .format(task.dueDate),
+                                              DateFormat(
+                                                  'dd/MM/yyyy • HH:mm')
+                                                  .format(
+                                                  task.dueDate),
                                               style: const TextStyle(
                                                 fontSize: 12,
                                                 color: Colors.grey,
@@ -308,7 +329,6 @@ class _HomePageState extends State<HomePage> {
                         );
                       }).toList(),
                     ),
-
                 ],
               ),
             );
