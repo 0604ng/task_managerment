@@ -5,6 +5,7 @@ import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_event.dart';
 import '../../blocs/auth/auth_state.dart';
 import 'sign_up_page.dart';
+import 'forgot_password_page.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -96,7 +97,15 @@ class _SignInPageState extends State<SignInPage> {
                           alignment: Alignment.centerRight,
                           child: TextButton(
                             onPressed: () {
-                              // TODO: Navigate reset password page
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => BlocProvider.value(
+                                    value: context.read<AuthBloc>(),
+                                    child: const ForgotPasswordPage(),
+                                  ),
+                                ),
+                              );
                             },
                             child: const Text("Forgot password?"),
                           ),
