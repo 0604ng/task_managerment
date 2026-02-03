@@ -29,13 +29,15 @@ class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
   bool _categoryLoaded = false;
-  bool _taskLoaded = false; // 🔥 QUAN TRỌNG
+  bool _taskLoaded = false;
 
+  /// 🌟 TẤT CẢ PAGE ĐI QUA ĐÂY
   final List<Widget> _pages = const [
-    HomePage(),
-    TodoPage(),
-    CompletedPage(),
-    MissedPage(),
+    HomePage(),       // 0
+    TodoPage(),       // 1
+    CompletedPage(),  // 2
+    MissedPage(),     // 3
+    ProfilePage(),    // 4 ⭐
   ];
 
   @override
@@ -45,24 +47,17 @@ class _MainShellState extends State<MainShell> {
         if (authState is AuthAuthenticated) {
           final userId = authState.user.id;
 
-          // 🔥 LOAD CATEGORY (1 LẦN)
           if (!_categoryLoaded) {
-            context.read<CategoryBloc>().add(
-              LoadCategories(userId),
-            );
+            context.read<CategoryBloc>().add(LoadCategories(userId));
             _categoryLoaded = true;
           }
 
-          // 🔥 LOAD TASKS (CỰC KỲ QUAN TRỌNG)
           if (!_taskLoaded) {
-            context.read<TaskBloc>().add(
-              LoadTasks(userId),
-            );
+            context.read<TaskBloc>().add(LoadTasks(userId));
             _taskLoaded = true;
           }
         }
 
-        // 🔄 RESET KHI LOGOUT
         if (authState is AuthUnauthenticated) {
           _categoryLoaded = false;
           _taskLoaded = false;
@@ -79,7 +74,6 @@ class _MainShellState extends State<MainShell> {
             ),
           ),
           actions: [
-            // ➕ ADD TASK
             IconButton(
               icon: const Icon(Icons.add),
               onPressed: () {
@@ -91,8 +85,6 @@ class _MainShellState extends State<MainShell> {
                 );
               },
             ),
-
-            // ⋮ LOGOUT
             PopupMenuButton<String>(
               onSelected: (value) {
                 if (value == 'logout') {
@@ -117,42 +109,117 @@ class _MainShellState extends State<MainShell> {
 
         // ================= DRAWER =================
         drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              const DrawerHeader(
-                decoration: BoxDecoration(color: Colors.green),
-                child: Text(
-                  'Task Manager',
-                  style: TextStyle(color: Colors.white, fontSize: 20),
+          child: SafeArea(
+            child: Column(
+              children: [
+                /// 👤 USER HEADER (DYNAMIC)
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    if (state is! AuthAuthenticated) {
+                      return const SizedBox.shrink();
+                    }
+
+                    final user = state.user;
+
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 20,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: Colors.green,
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 32,
+                            backgroundColor: Colors.white,
+                            backgroundImage: user.avatarUrl != null
+                                ? NetworkImage(user.avatarUrl!)
+                                : null,
+                            child: user.avatarUrl == null
+                                ? const Icon(
+                              Icons.person,
+                              size: 32,
+                              color: Colors.green,
+                            )
+                                : null,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  user.username,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  user.email,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 13,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
-              ),
-              _drawerItem(Icons.list, 'To do tasks', 1),
-              _drawerItem(Icons.check_circle, 'Completed tasks', 2),
-              _drawerItem(Icons.cancel, 'Missed tasks', 3),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.person),
-                title: const Text('Profile'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ProfilePage(),
+
+                /// 📋 MENU
+                Expanded(
+                  child: ListView(
+                    children: [
+                      _drawerItem(Icons.home, 'Home', 0),
+                      _drawerItem(Icons.list, 'To do tasks', 1),
+                      _drawerItem(Icons.check_circle, 'Completed tasks', 2),
+                      _drawerItem(Icons.cancel, 'Missed tasks', 3),
+
+                      const Divider(),
+
+                      _drawerItem(Icons.person, 'Profile', 4),
+                    ],
+                  ),
+                ),
+
+                /// 🚪 LOGOUT (BOTTOM)
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: ListTile(
+                    leading: const Icon(Icons.logout, color: Colors.red),
+                    title: const Text(
+                      'Logout',
+                      style: TextStyle(color: Colors.red),
                     ),
-                  );
-                },
-              ),
-            ],
+                    onTap: () {
+                      context.read<AuthBloc>().add(SignOutRequested());
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
+
 
         // ================= BODY =================
         body: _pages[_currentIndex],
 
         // ================= BOTTOM NAV =================
         bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _currentIndex,
+          currentIndex: _currentIndex > 3 ? 0 : _currentIndex,
           onTap: (index) => setState(() => _currentIndex = index),
           type: BottomNavigationBarType.fixed,
           items: const [
@@ -180,6 +247,8 @@ class _MainShellState extends State<MainShell> {
         return 'Completed';
       case 3:
         return 'Missed';
+      case 4:
+        return 'Profile';
       default:
         return '';
     }
@@ -189,6 +258,7 @@ class _MainShellState extends State<MainShell> {
     return ListTile(
       leading: Icon(icon),
       title: Text(title),
+      selected: _currentIndex == index,
       onTap: () {
         setState(() => _currentIndex = index);
         Navigator.pop(context);
