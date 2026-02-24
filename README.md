@@ -60,15 +60,13 @@ Hosting: Firebase Hosting
 Nếu bạn muốn chạy dự án này trên máy cá nhân:
 
 Clone repository:
-
 git clone https://github.com/USERNAME/task_managerment.git
+
 Cài đặt dependencies:
-
 flutter pub get
-Cấu hình Firebase:
 
+Cấu hình Firebase:
 Thay thế file google-services.json (Android) và GoogleService-Info.plist (iOS) bằng cấu hình từ dự án Firebase của bạn.
 
 Chạy ứng dụng:
-
 flutter run
