@@ -82,7 +82,7 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   /// 👋 Welcome
                   Text(
-                    'Welcome, ${user.username} 👋',
+                    'Welcome, ${user.username} 👋 ',
                     style: Theme.of(context)
                         .textTheme
                         .headlineSmall

@@ -1,1 +1,35 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"taskmanager-ng0604","appId":"1:772356996224:android:2ee44e55ec90010a97fa65","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"taskmanager-ng0604","configurations":{"windows":"1:772356996224:web:ba4c3a7cb98f233997fa65"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "taskmanager-ng0604",
+          "appId": "1:772356996224:android:2ee44e55ec90010a97fa65",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "taskmanager-ng0604",
+          "configurations": {
+            "windows": "1:772356996224:web:ba4c3a7cb98f233997fa65"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
