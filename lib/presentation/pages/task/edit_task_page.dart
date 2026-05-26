@@ -75,59 +75,169 @@ class _EditTaskPageState extends State<EditTaskPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final dateText = DateFormat('EEEE, d MMMM yyyy').format(_date);
+    final timeText = _time.format(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Task'),
-        backgroundColor: AppColors.primary,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white : AppColors.textPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Form(
-              key: _formKey,
-              child: ListView(
-                children: [
-                  TextFormField(
-                    controller: _titleCtrl,
-                    decoration: const InputDecoration(labelText: 'Task name'),
-                    validator: (v) =>
-                    v != null && v.isNotEmpty ? null : 'Required',
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _descCtrl,
-                    decoration:
-                    const InputDecoration(labelText: 'Description'),
-                    maxLines: 4,
-                  ),
-                  const SizedBox(height: 10),
-                  ListTile(
-                    title: const Text('Date'),
-                    subtitle: Text(DateFormat.yMMMd().format(_date)),
-                    trailing: const Icon(Icons.calendar_today),
-                    onTap: _pickDate,
-                  ),
-                  ListTile(
-                    title: const Text('Time'),
-                    subtitle: Text(_time.format(context)),
-                    trailing: const Icon(Icons.access_time),
-                    onTap: _pickTime,
-                  ),
-                  SwitchListTile(
-                    title: const Text('Completed'),
-                    value: _completed,
-                    onChanged: (v) => setState(() => _completed = v),
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: _save,
-                    child: const Text('Save'),
-                  ),
-                ],
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Task Details",
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
-            ),
+              const SizedBox(height: 16),
+
+              // Title input
+              TextFormField(
+                controller: _titleCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Task Title',
+                  prefixIcon: Icon(Icons.title_rounded, color: AppColors.primary),
+                ),
+                validator: (v) => v != null && v.isNotEmpty ? null : 'Please enter a task name',
+              ),
+              const SizedBox(height: 16),
+
+              // Description input
+              TextFormField(
+                controller: _descCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Description (Optional)',
+                  prefixIcon: Icon(Icons.notes_rounded, color: AppColors.primary),
+                  alignLabelWithHint: true,
+                ),
+                maxLines: 4,
+              ),
+              const SizedBox(height: 24),
+
+              // Picker Card 1: Date
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : AppColors.border,
+                    width: 1,
+                  ),
+                ),
+                child: ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Colors.transparent,
+                    child: Icon(Icons.calendar_today_rounded, color: AppColors.primary),
+                  ),
+                  title: const Text(
+                    'Due Date',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  subtitle: Text(
+                    dateText,
+                    style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary),
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: _pickDate,
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Picker Card 2: Time
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : AppColors.border,
+                    width: 1,
+                  ),
+                ),
+                child: ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Colors.transparent,
+                    child: Icon(Icons.access_time_rounded, color: AppColors.primary),
+                  ),
+                  title: const Text(
+                    'Reminder Time',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  subtitle: Text(
+                    timeText,
+                    style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary),
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: _pickTime,
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Completion toggler SwitchCard
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : AppColors.border,
+                    width: 1,
+                  ),
+                ),
+                child: SwitchListTile(
+                  title: const Text(
+                    'Mark as Completed',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  activeThumbColor: AppColors.success,
+                  value: _completed,
+                  onChanged: (v) => setState(() => _completed = v),
+                ),
+              ),
+              const SizedBox(height: 36),
+
+              // Save button
+              Container(
+                width: double.infinity,
+                height: 54,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primary, AppColors.secondary],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  onPressed: _save,
+                  child: const Text(
+                    'Save Changes',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

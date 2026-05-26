@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'domain/usecases/auth/update_avatar_usecase.dart';
+import 'domain/usecases/auth/update_username_usecase.dart';
 import 'firebase_options.dart';
 import 'const/theme.dart';
 import 'core/services/notification_service.dart';
@@ -83,6 +84,8 @@ void main() async {
 
             updateAvatarUseCase: // 🔥 ADD
             UpdateAvatarUseCase(authRepository),
+            updateUsernameUseCase:
+            UpdateUsernameUseCase(authRepository),
           )..add(WatchAuthStateRequested()),
         ),
 

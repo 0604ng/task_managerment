@@ -11,6 +11,7 @@ abstract class AuthRemoteDataSource {
 
   // 🔥 ADD
   Future<void> updateAvatar(String avatarUrl);
+  Future<void> updateUsername(String username);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -81,8 +82,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> updateAvatar(String avatarUrl) async {
     final uid = auth.currentUser!.uid;
-    await firestore.collection("users").doc(uid).update({
+    await firestore.collection("users").doc(uid).set({
       "avatarUrl": avatarUrl,
-    });
+    }, SetOptions(merge: true));
+  }
+
+  @override
+  Future<void> updateUsername(String username) async {
+    final uid = auth.currentUser!.uid;
+    await firestore.collection("users").doc(uid).set({
+      "username": username,
+    }, SetOptions(merge: true));
   }
 }

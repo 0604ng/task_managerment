@@ -62,6 +62,27 @@ class _AddTaskPageState extends State<AddTaskPage> {
     if (selected != null) setState(() => _time = selected);
   }
 
+  IconData _getCategoryIcon(String cat) {
+    switch (cat.toLowerCase()) {
+      case 'work':
+        return Icons.work_rounded;
+      case 'family':
+        return Icons.family_restroom_rounded;
+      case 'sport':
+        return Icons.sports_soccer_rounded;
+      case 'game':
+        return Icons.sports_esports_rounded;
+      case 'shopping':
+        return Icons.shopping_bag_rounded;
+      case 'learning':
+        return Icons.school_rounded;
+      case 'hobby':
+        return Icons.palette_rounded;
+      default:
+        return Icons.label_rounded;
+    }
+  }
+
   void _save() {
     if (!_formKey.currentState!.validate()) return;
 
@@ -82,7 +103,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
       description: _descCtrl.text.trim(),
       isCompleted: false,
       dueDate: dueDateTime,
-      categoryId: _category.toLowerCase(), // work, family, ...
+      categoryId: _category.toLowerCase(),
       userId: authState.user.id,
     );
 
@@ -92,94 +113,207 @@ class _AddTaskPageState extends State<AddTaskPage> {
 
   @override
   Widget build(BuildContext context) {
-    final dateText = DateFormat.yMMMd().format(_dueDate);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final dateText = DateFormat('EEEE, d MMMM yyyy').format(_dueDate);
     final timeText = _time.format(context);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Task'),
-        backgroundColor: AppColors.primary,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white : AppColors.textPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Form(
-              key: _formKey,
-              child: ListView(
-                children: [
-                  /// TITLE
-                  TextFormField(
-                    controller: _titleCtrl,
-                    decoration:
-                    const InputDecoration(labelText: 'Task name'),
-                    validator: (v) =>
-                    v != null && v.isNotEmpty ? null : 'Required',
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  /// DESCRIPTION
-                  TextFormField(
-                    controller: _descCtrl,
-                    decoration:
-                    const InputDecoration(labelText: 'Description'),
-                    maxLines: 3,
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  /// DATE
-                  ListTile(
-                    title: const Text('Date'),
-                    subtitle: Text(dateText),
-                    trailing: const Icon(Icons.calendar_today),
-                    onTap: _pickDate,
-                  ),
-
-                  /// TIME
-                  ListTile(
-                    title: const Text('Time'),
-                    subtitle: Text(timeText),
-                    trailing: const Icon(Icons.access_time),
-                    onTap: _pickTime,
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  /// CATEGORY DROPDOWN
-                  DropdownButtonFormField<String>(
-                    initialValue: _category,
-                    decoration:
-                    const InputDecoration(labelText: 'Category'),
-                    items: _categories
-                        .map(
-                          (c) => DropdownMenuItem(
-                        value: c,
-                        child: Text(c),
-                      ),
-                    )
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) setState(() => _category = v);
-                    },
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  /// CREATE
-                  ElevatedButton(
-                    onPressed: _save,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: const Text('Create'),
-                  ),
-                ],
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Task Details",
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
-            ),
+              const SizedBox(height: 16),
+
+              // Title input
+              TextFormField(
+                controller: _titleCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Task Title',
+                  prefixIcon: Icon(Icons.title_rounded, color: AppColors.primary),
+                ),
+                validator: (v) => v != null && v.isNotEmpty ? null : 'Please enter a task name',
+              ),
+              const SizedBox(height: 16),
+
+              // Description input
+              TextFormField(
+                controller: _descCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Description (Optional)',
+                  prefixIcon: Icon(Icons.notes_rounded, color: AppColors.primary),
+                  alignLabelWithHint: true,
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 24),
+
+              // Category Selector Header
+              Text(
+                "Category Selector",
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Category Chip List
+              SizedBox(
+                height: 54,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _categories.length,
+                  itemBuilder: (context, index) {
+                    final cat = _categories[index];
+                    final isSelected = _category == cat;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 10),
+                      child: ChoiceChip(
+                        label: Row(
+                          children: [
+                            Icon(
+                              _getCategoryIcon(cat),
+                              size: 18,
+                              color: isSelected ? Colors.white : AppColors.primary,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              cat,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: isSelected ? Colors.white : (isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
+                              ),
+                            ),
+                          ],
+                        ),
+                        selected: isSelected,
+                        selectedColor: AppColors.primary,
+                        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: isSelected ? AppColors.primary : (isDark ? AppColors.darkBorder : AppColors.border),
+                            width: 1,
+                          ),
+                        ),
+                        onSelected: (selected) {
+                          if (selected) setState(() => _category = cat);
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Date picker tile
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : AppColors.border,
+                    width: 1,
+                  ),
+                ),
+                child: ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Colors.transparent,
+                    child: Icon(Icons.calendar_today_rounded, color: AppColors.primary),
+                  ),
+                  title: const Text(
+                    'Due Date',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  subtitle: Text(
+                    dateText,
+                    style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary),
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: _pickDate,
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Time picker tile
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : AppColors.border,
+                    width: 1,
+                  ),
+                ),
+                child: ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Colors.transparent,
+                    child: Icon(Icons.access_time_rounded, color: AppColors.primary),
+                  ),
+                  title: const Text(
+                    'Reminder Time',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  subtitle: Text(
+                    timeText,
+                    style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary),
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: _pickTime,
+                ),
+              ),
+              const SizedBox(height: 36),
+
+              // Save button
+              Container(
+                width: double.infinity,
+                height: 54,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primary, AppColors.secondary],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  onPressed: _save,
+                  child: const Text(
+                    'Create Task',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

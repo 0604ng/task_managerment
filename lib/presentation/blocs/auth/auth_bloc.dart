@@ -8,6 +8,7 @@ import '../../../domain/usecases/auth/sign_out_usecase.dart';
 import '../../../domain/usecases/auth/watch_auth_state_usecase.dart';
 import '../../../domain/usecases/auth/reset_password_usecase.dart';
 import '../../../domain/usecases/auth/update_avatar_usecase.dart'; // 🔥 ADD
+import '../../../domain/usecases/auth/update_username_usecase.dart';
 
 import 'auth_event.dart';
 import 'auth_state.dart';
@@ -19,6 +20,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final WatchAuthStateUseCase watchAuthStateUseCase;
   final ResetPasswordUseCase resetPasswordUseCase;
   final UpdateAvatarUseCase updateAvatarUseCase; // 🔥 ADD
+  final UpdateUsernameUseCase updateUsernameUseCase;
 
   StreamSubscription<UserEntity?>? _authStateSubscription;
 
@@ -29,14 +31,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.watchAuthStateUseCase,
     required this.resetPasswordUseCase,
     required this.updateAvatarUseCase, // 🔥 ADD
+    required this.updateUsernameUseCase,
   }) : super(AuthInitial()) {
 
     /// LOGIN
     on<SignInRequested>((event, emit) async {
       emit(AuthLoading());
       try {
-        await signInUseCase(event.email, event.password);
-        // authStateChanges sẽ emit AuthAuthenticated
+        final user = await signInUseCase(event.email, event.password);
+        if (user != null) {
+          emit(AuthAuthenticated(user));
+        } else {
+          emit(AuthUnauthenticated());
+        }
       } catch (e) {
         emit(AuthError(e.toString()));
       }
@@ -46,11 +53,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignUpRequested>((event, emit) async {
       emit(AuthLoading());
       try {
-        await signUpUseCase(
+        final user = await signUpUseCase(
           event.email,
           event.password,
           event.username,
         );
+        if (user != null) {
+          emit(AuthAuthenticated(user));
+        } else {
+          emit(AuthUnauthenticated());
+        }
       } catch (e) {
         emit(AuthError(e.toString()));
       }
@@ -104,7 +116,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           ),
         );
       } catch (e) {
-        emit(AuthError(e.toString()));
+        // Keep the user authenticated on error to avoid logging them out
+        emit(current);
+      }
+    });
+
+    /// 🔥 UPDATE USERNAME
+    on<UpdateUsernameRequested>((event, emit) async {
+      if (state is! AuthAuthenticated) return;
+
+      final current = state as AuthAuthenticated;
+
+      try {
+        await updateUsernameUseCase(event.username);
+
+        emit(
+          AuthAuthenticated(
+            current.user.copyWith(
+              username: event.username,
+            ),
+          ),
+        );
+      } catch (e) {
+        // Keep the user authenticated on error to avoid logging them out
+        emit(current);
       }
     });
   }

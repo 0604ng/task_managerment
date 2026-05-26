@@ -6,6 +6,7 @@ abstract class AuthRepository {
   Future<void> signOut();
   Future<void> sendPasswordReset(String email);
   Future<void> updateAvatar(String avatarUrl);
+  Future<void> updateUsername(String username);
 
   Stream<UserEntity?> watchUser();
 }

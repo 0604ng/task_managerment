@@ -19,4 +19,14 @@ class NotificationPermissionService {
 
     return true;
   }
+
+  /// Check if all reminder permissions are granted
+  static Future<bool> isGranted() async {
+    if (Platform.isAndroid) {
+      final notificationStatus = await Permission.notification.status;
+      final exactAlarmStatus = await Permission.scheduleExactAlarm.status;
+      return notificationStatus.isGranted && exactAlarmStatus.isGranted;
+    }
+    return true;
+  }
 }

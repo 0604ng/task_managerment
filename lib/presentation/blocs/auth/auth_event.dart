@@ -29,3 +29,8 @@ class UpdateAvatarRequested extends AuthEvent {
   UpdateAvatarRequested(this.avatarUrl);
 }
 
+class UpdateUsernameRequested extends AuthEvent {
+  final String username;
+  UpdateUsernameRequested(this.username);
+}
+
