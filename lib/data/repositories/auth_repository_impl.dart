@@ -1,7 +1,6 @@
 import 'package:task_manager/domain/entity/user_entity.dart';
 import 'package:task_manager/domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
-import 'auth_repository_impl.dart' as remote;
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remote;
@@ -41,4 +40,3 @@ class AuthRepositoryImpl implements AuthRepository {
     await remote.updateAvatar(avatarUrl);
   }
 }
-
