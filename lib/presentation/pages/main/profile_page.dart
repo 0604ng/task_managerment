@@ -144,7 +144,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   final granted =
                   await NotificationPermissionService.requestAll();
 
-                  if (!mounted) return;
+                  if (!context.mounted) return;
 
                   if (!granted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -158,7 +158,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                   await NotificationService.sendTestNotification();
 
-                  if (!mounted) return;
+                  if (!context.mounted) return;
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(

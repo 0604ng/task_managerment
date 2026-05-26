@@ -37,13 +37,8 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> updateAvatar(String avatarUrl) {
-    // TODO: implement updateAvatar
-    throw UnimplementedError();
+  Future<void> updateAvatar(String avatarUrl) async {
+    await remote.updateAvatar(avatarUrl);
   }
-}
-@override
-Future<void> updateAvatar(String avatarUrl) async {
-  await remote.updateAvatar(avatarUrl);
 }
 

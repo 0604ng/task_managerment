@@ -1,22 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:task_manager/main.dart'; // CHỈ GIỮ LẠI 1 IMPORT
+import 'package:task_manager/presentation/blocs/theme/theme_cubit.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const TaskManagerApp()); // BỎ const nếu MyApp không phải const
+  group('ThemeCubit Tests', () {
+    test('initial state is ThemeMode.system', () {
+      final themeCubit = ThemeCubit();
+      expect(themeCubit.state, ThemeMode.system);
+      themeCubit.close();
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    test('setLight emits ThemeMode.light', () {
+      final themeCubit = ThemeCubit();
+      themeCubit.setLight();
+      expect(themeCubit.state, ThemeMode.light);
+      themeCubit.close();
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('setDark emits ThemeMode.dark', () {
+      final themeCubit = ThemeCubit();
+      themeCubit.setDark();
+      expect(themeCubit.state, ThemeMode.dark);
+      themeCubit.close();
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    test('setSystem emits ThemeMode.system', () {
+      final themeCubit = ThemeCubit();
+      themeCubit.setLight();
+      themeCubit.setSystem();
+      expect(themeCubit.state, ThemeMode.system);
+      themeCubit.close();
+    });
   });
 }

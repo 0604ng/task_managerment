@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -13,8 +14,8 @@ class AvatarUploadService {
           .ref()
           .child('avatars/$uid.jpg');
 
-      print('🔍 Uploading to: ${ref.bucket}');
-      print('🔍 Path: ${ref.fullPath}');
+      debugPrint('🔍 Uploading to: ${ref.bucket}');
+      debugPrint('🔍 Path: ${ref.fullPath}');
 
       await ref.putFile(
         file,
@@ -22,12 +23,12 @@ class AvatarUploadService {
       );
 
       final url = await ref.getDownloadURL();
-      print('✅ Upload success: $url');
+      debugPrint('✅ Upload success: $url');
 
       return url;
 
     } catch (e) {
-      print('❌ Upload error: $e');
+      debugPrint('❌ Upload error: $e');
       rethrow;
     }
   }
