@@ -7,14 +7,7 @@ Một ứng dụng Flutter & Firebase quản lý công việc cá nhân, đượ
 
 ---
 
-## 🎨 Điểm Nổi Bật & Triết Lý Thiết Kế (Aesthetics & UX)
 
-*   **Premium Visual Design:** Giao diện tối giản hiện đại (Modern Minimalist UI) kết hợp bộ màu sắc HSL hài hòa (Teal, Orange, Emerald), tạo trải nghiệm thoải mái cho người dùng.
-*   **Dynamic Theme Adaptive:** Tự động chuyển đổi mượt mà giữa Chế độ sáng (Light Mode) và Chế độ tối (Dark Mode) để bảo vệ mắt.
-*   **Gamified Productivity Analytics:** Trực quan hóa tiến độ công việc hàng ngày bằng biểu đồ tròn và thanh tiến trình tương tác (`fl_chart`).
-*   **Micro-interactions:** Hiệu ứng hover nhạy bén, các hộp thoại cảnh báo và phản hồi trạng thái (Loading, Success, Empty, Error) mượt mà.
-
----
 
 ## 🏗 Kiến Trúc Hệ Thống (Clean Architecture)
 
@@ -72,8 +65,7 @@ sequenceDiagram
 
 ---
 
-## 🚀 Tính Năng Chính Được Kiểm Chứng
-
+## 🚀 Tính Năng Chính 
 Ứng dụng đáp ứng đầy đủ các tiêu chuẩn của một sản phẩm chất lượng cao:
 
 *   **Xác Thực & Phân Quyền (Authentication & Authorization):**
@@ -93,7 +85,7 @@ sequenceDiagram
 
 ## 🛠 Công Nghệ Sử Dụng (Tech Stack)
 
-*   **Language:** Dart 3.x (Null Safety)
+*   **Language:** Dart (Null Safety)
 *   **Framework:** Flutter (Web & Mobile)
 *   **State Management:** Flutter BLoC (v8.1.3+)
 *   **Backend & DB:** Firebase Auth, Cloud Firestore, Firebase Storage
