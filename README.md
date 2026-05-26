@@ -83,6 +83,40 @@ sequenceDiagram
 
 ---
 
+## 🎨 Chi Tiết Nâng Cấp Giao Diện UI/UX Cao Cấp (Premium Upgrades)
+
+Toàn bộ hệ thống giao diện đã được thiết kế lại theo phong cách hiện đại, trực quan sinh động và đạt chuẩn mỹ thuật số cực kỳ cao cấp:
+
+### 1. Hệ Màu sắc & Chủ Đề Đồng Bộ (Material Themes)
+*   **Light Mode**: Màu nền Slate dịu mát (`#F8FAFC`) kết hợp sắc màu Violet/Indigo chủ đạo mang lại cảm giác năng động và tươi trẻ.
+*   **Dark Mode (Obsidian Mode)**: Nền tối sâu thẳm siêu thực (`#090D16`) kết hợp cùng các thẻ hộp xám Slate đậm (`#151C2C`) hạn chế tối đa mỏi mắt và tăng độ nổi bật cho biểu đồ.
+
+### 2. Luồng Xác Thực Thủy Tinh Mờ (Glassmorphism Auth Flow)
+*   Màn hình Đăng nhập & Đăng ký sử dụng nền gradient chuyển tiếp ba màu sắc thời thượng.
+*   Form nhập liệu được bọc trong khung **Glassmorphism mờ** mềm mại với hiệu ứng mờ nhòe hậu cảnh (Backdrop Filter Blur), bo góc tinh tế `24px` cùng hiệu ứng viền phát sáng Indigo khi được chọn.
+*   *Sửa lỗi nghiệp vụ*: Bổ sung trường nhập **Username** vào form Đăng ký để đồng nhất dữ liệu Firestore ngay khi kích hoạt tài khoản.
+
+### 3. Vỏ Bọc Điều Hướng Nổi (Floating Navigation Dock)
+*   Thanh điều hướng chuyển đổi thành dạng **Floating Dock** bo cong tròn `24px`, nằm lơ lửng trên màn hình nền với đổ bóng mịn màng.
+*   Ngăn kéo sidebar (Drawer) nâng cấp với header dải màu gradient tím quyến rũ, viền ảnh đại diện phát sáng trắng và highlight danh mục menu hiện đại.
+
+### 4. Đồ Thị Donut Neon & Sliding Pill Tab Switcher
+*   **Biểu đồ Tiến độ Tổng thể**: Nâng cấp thành dạng **Donut Chart** mảnh dẻ, dải màu rực rỡ thu hút thị giác.
+    *   *Chế độ sáng*: Cung màu trắng/đen thanh lịch trên nền thẻ gradient tím-indigo.
+    *   *Chế độ tối (Obsidian)*: Thẻ tiến độ chuyển sắc deep space sâu lắng (`#1E1B4B` - `#0F172A`), các cung đồ thị phát sáng bằng dải màu **Neon rực rỡ**: **Neon Mint Green** (Hoàn thành), **Electric Cyan** (Cần làm) và **Fiery Coral Red** (Bỏ lỡ).
+*   **Sliding Pill Tab Switcher**: Bộ nút lọc ngày (Hôm nay/Ngày mai) dạng viên thuốc trượt mượt mà có hiệu ứng hoạt họa êm ái khi chạm chuyển tab.
+
+### 5. Thẻ Công Việc Đồng Nhất (Modular TaskCard)
+*   Tạo mới widget `TaskCard` dùng chung cho tất cả màn hình danh sách, tích hợp viền lề trái tự động đổi màu tương ứng từng phân loại Category (Work, Sport, Family...).
+*   Checkbox tròn chuyển màu mượt mà, chạm vào tự động đồng bộ trạng thái đến Firebase và gạch ngang chữ kèm hiệu ứng mờ nhạt dần.
+
+### 6. Trang Thiết Lập Cá Nhân Cao Cấp (End-to-End Clean Architecture)
+*   **Đổi Tên Hai Chế Độ (Dual-mode Edit)**: Ở chế độ xem, tên hiển thị dạng chữ to, đậm nét (`22px`). Click vào biểu tượng bút chì phát sáng sẽ mở ra khung nhập liệu TextFormField cùng bộ đôi nút **Cancel (Hủy)** và **Save (Lưu)** chuyển sắc. Tự động thu gọn về dạng xem khi cập nhật thành công.
+*   **Bảo vệ Trạng thái Đăng nhập**: Đồng bộ Firestore bằng phương thức `.set(..., SetOptions(merge: true))` tránh tuyệt đối lỗi `NOT_FOUND` và cấu hình BLoC không phát ra `AuthError` gây tự động đăng xuất nhầm khi đổi tên/ảnh đại diện.
+*   **Thẻ Cài Đặt Nhắc Nhở Thông Minh**: Hộp cài đặt thông báo bo góc `20px` với biểu tượng chuông đổi trạng thái phát sáng và nút gạt **Switch** tự động quét kiểm tra quyền hệ thống thực tế của thiết bị ảo ngay khi khởi động (`initState`), mang lại SnackBar hướng dẫn thân thiện nhất.
+
+---
+
 ## 🛠 Công Nghệ Sử Dụng (Tech Stack)
 
 *   **Language:** Dart (Null Safety)
